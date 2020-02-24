@@ -33,10 +33,25 @@ const listChats = async (ctx) => {
 const createChat = async (ctx) => {
   const params = ctx.request.body;
 
-  const chat = await database.Chat.create({ message: params.message });
+  const chat = await database.Chat.create({ message: params.message, nickname: params.nickname, room: params.room });
 
   ctx.body = chat;
   ctx.status = 201;
+};
+
+
+//Get messages from room specified in url
+const listMessages = async (ctx) => {
+  const url = ctx.request.url.split("/")
+  const roomName = url[url.length-1];
+
+  const messages = await database.Chat.findAll({where: {room:roomName}});
+
+  const response = {
+    results: messages,
+  };
+
+  ctx.body = response;
 };
 
 /* CONFIGURING THE API ROUTES */
@@ -45,6 +60,8 @@ const publicRouter = new Router({ prefix: '/api' });
 
 publicRouter.get('/chats', listChats);
 publicRouter.post('/chats', createChat);
+
+publicRouter.get('/chats/:roomName', listMessages);
 
 app.use(publicRouter.routes());
 app.use(publicRouter.allowedMethods());
